@@ -1,13 +1,13 @@
 namespace Simple_Video_Capture
 {
     using System;
-    using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
     using System.Windows;
     using System.Windows.Controls;
     using VisioForge.Core.Types;
     using VisioForge.Core.Types.Events;
+    using VisioForge.Core.Types.Output;
     using VisioForge.Core.Types.VideoCapture;
     using VisioForge.Core.VideoCapture;
 
@@ -44,12 +44,16 @@ namespace Simple_Video_Capture
         private async Task CreateEngineAsync()
         {
             VideoCapture1 = await VideoCaptureCore.CreateAsync(VideoView1 as IVideoView);
-
+            VideoCapture1.Video_Renderer.VideoRenderer = VideoRendererMode.Direct2D;
+            VideoCapture1.Debug_Mode = true;
+            VideoCapture1.Debug_Dir = @"C:.\log\";
             VideoCapture1.OnError += VideoCapture1_OnError;
-            var certificatePath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                "VideoCaptureSDK-Premium-Release.vflicense");
-            await VideoCapture1.SetLicenseCertificateAsync(certificatePath);
+            VideoCapture1.OnVideoFrameBuffer += VideoCapture1_OnVideoFrameBuffer;
+            VideoCapture1.Mode = VideoCaptureMode.VideoCapture;
+            //var certificatePath = Path.Combine(
+            //    Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+            //    "VisioForge", "VideoCaptureSDK-Premium-Developer.vflicense");
+            //await VideoCapture1.SetLicenseCertificateAsync(certificatePath);
         }
 
         /// <summary>
@@ -60,6 +64,7 @@ namespace Simple_Video_Capture
             if (VideoCapture1 != null)
             {
                 VideoCapture1.OnError -= VideoCapture1_OnError;
+                VideoCapture1.OnVideoFrameBuffer -= VideoCapture1_OnVideoFrameBuffer;
 
                 VideoCapture1.Dispose();
                 VideoCapture1 = null;
@@ -146,22 +151,20 @@ namespace Simple_Video_Capture
         /// <param name="e">The <see cref="RoutedEventArgs"/> instance containing the event data.</param>
         private async void btStart_Click(object sender, RoutedEventArgs e)
         {
-
-            VideoCapture1.Video_Sample_Grabber_Enabled = true;
-
-            VideoCapture1.Debug_Mode = true;
-            VideoCapture1.Debug_Dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "VisioForge");
-            VideoCapture1.Audio_RecordAudio = false;
-            VideoCapture1.Audio_PlayAudio = false;
-            VideoCapture1.Video_Renderer.VideoRenderer = VideoRendererMode.WPF_WinUI_Callback;
             // apply capture params
             VideoCapture1.Video_CaptureDevice = new VideoCaptureSource(cbVideoInputDevice.Text);
             VideoCapture1.Video_CaptureDevice.Format = cbVideoInputFormat.Text;
             VideoCapture1.Video_CaptureDevice.Format_UseBest = false;
-            VideoCapture1.Mode = VideoCaptureMode.VideoPreview;
-            VideoCapture1.Video_Effects_Clear();
-
+            var output = new MP4HWOutput();
+            output.Video.Codec = MFVideoEncoder.MS_H264;
+            output.UseFFMPEGMuxer = true;
+            VideoCapture1.Output_Format = output;
             await VideoCapture1.StartAsync();
+        }
+
+        private void VideoCapture1_OnVideoFrameBuffer(object sender, VideoFrameBufferEventArgs args)
+        {
+            VideoView2.PushFrame(args.Frame);
         }
 
 

@@ -16,6 +16,12 @@
         </TabControl>
         <Button Name="btStop" Height="23" Width="62" TabIndex="54" Click="btStop_Click" Margin="0,0,295,10" HorizontalAlignment="Right" VerticalAlignment="Bottom" FontWeight="Bold" >Stop</Button>
         <Button Name="btStart" Height="23" Width="62" TabIndex="53" Click="btStart_Click" Margin="0,0,362,10" HorizontalAlignment="Right" VerticalAlignment="Bottom" FontWeight="Bold" >Start</Button>
-        <my:VideoView Name="VideoView1" Margin="434,33,10,145" Background="Black" />
+
+
+        <StackPanel Margin="434,33,10,45" Orientation="Horizontal" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <my:VideoView Name="VideoView1"  Background="Black" Width="200" Height="200" Margin="10" />
+            <my:VideoView Name="VideoView2"  Background="Black" Width="200" Height="200" Margin="10" />
+        </StackPanel>
+    
     </Grid>
 </Window>
